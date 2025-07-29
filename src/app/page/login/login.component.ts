@@ -53,7 +53,6 @@ export class LoginComponent implements OnInit {
     if (this.authService.login(this.username, this.password)) {
       this.toastr.success('You are being redirected.', 'Login Successful!');
     } else {
-      // This part would be more relevant with real validation
       this.toastr.error('Invalid credentials.', 'Login Failed');
     }
 
