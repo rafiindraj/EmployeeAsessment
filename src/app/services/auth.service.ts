@@ -1,20 +1,29 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  private currentUserSubject = new BehaviorSubject<string>('');
+ private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  private isBrowser: boolean;
 
-  constructor() {
-    const savedAuth = localStorage.getItem('isAuthenticated');
-    const savedUser = localStorage.getItem('currentUser');
-    
-    if (savedAuth === 'true' && savedUser) {
-      this.isAuthenticatedSubject.next(true);
-      this.currentUserSubject.next(savedUser);
+  constructor(
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    this.loadInitialAuthState();
+  }
+
+  private loadInitialAuthState(): void {
+    if (this.isBrowser) {
+      const savedAuth = localStorage.getItem('isAuthenticated');
+      if (savedAuth === 'true') {
+        this.isAuthenticatedSubject.next(true);
+      }
     }
   }
 
@@ -22,36 +31,28 @@ export class AuthService {
     return this.isAuthenticatedSubject.asObservable();
   }
 
-  get currentUser$(): Observable<string> {
-    return this.currentUserSubject.asObservable();
-  }
-
   get isAuthenticated(): boolean {
     return this.isAuthenticatedSubject.value;
   }
 
-  get currentUser(): string {
-    return this.currentUserSubject.value;
-  }
-
   login(username: string, password: string): boolean {
+    // Mock login validation
     if (username && password) {
+      if (this.isBrowser) {
+        localStorage.setItem('isAuthenticated', 'true');
+      }
       this.isAuthenticatedSubject.next(true);
-      this.currentUserSubject.next(username);
-      
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('currentUser', username);
-      
+      this.router.navigate(['/employees']);
       return true;
     }
     return false;
   }
 
   logout(): void {
+    if (this.isBrowser) {
+      localStorage.removeItem('isAuthenticated');
+    }
     this.isAuthenticatedSubject.next(false);
-    this.currentUserSubject.next('');
-    
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('currentUser');
+    this.router.navigate(['/login']);
   }
 }

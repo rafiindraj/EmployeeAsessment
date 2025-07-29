@@ -1,3 +1,4 @@
+import { ToastrService } from 'ngx-toastr';
 import { AuthService } from './../../services/auth.service';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private toastr: ToastrService,
     private router: Router
   ) {}
 
@@ -46,6 +48,13 @@ export class LoginComponent implements OnInit {
     if (this.password.trim().length < 6) {
       alert('Password must be at least 6 characters long!');
       return;
+    }
+
+    if (this.authService.login(this.username, this.password)) {
+      this.toastr.success('You are being redirected.', 'Login Successful!');
+    } else {
+      // This part would be more relevant with real validation
+      this.toastr.error('Invalid credentials.', 'Login Failed');
     }
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
